@@ -1,63 +1,40 @@
 const express = require("express");
-const fs = require("fs");
-const path = require("path");
-
 const app = express();
-const PORT = 3000;
+const fs = require("fs");
 
-// Middleware para parsear JSON
+app.listen(3000, console.log("Servidor encendido"));
+
 app.use(express.json());
-
-// Middleware para servir archivos estáticos
-app.use(express.static(path.join(__dirname, "public")));
-
-// Obtener todas las canciones
+// Mostramos la informacion
 app.get("/repertorio", (req, res) => {
   const repertorio = JSON.parse(fs.readFileSync("repertorio.json"));
   res.json(repertorio);
 });
-
-// Agregar una nueva canción
+// Enviamos la informacion
 app.post("/repertorio", (req, res) => {
-  const nuevaCancion = req.body;
+  const cancion = req.body; //<= Se envia la info del payload
   const repertorio = JSON.parse(fs.readFileSync("repertorio.json"));
-  repertorio.push(nuevaCancion);
-  fs.writeFileSync("repertorio.json", JSON.stringify(repertorio, null, 2));
-  res.status(201).send("Canción agregada con éxito");
+  repertorio.push(cancion);
+  fs.writeFileSync("repertorio.json", JSON.stringify(repertorio));
+  res.send("cancion agregada con éxito");
 });
-
-// Eliminar una canción
+// Eliminamos la informacion
 app.delete("/repertorio/:id", (req, res) => {
   const { id } = req.params;
   const repertorio = JSON.parse(fs.readFileSync("repertorio.json"));
   const index = repertorio.findIndex((c) => c.id == id);
-
-  if (index !== -1) {
-    repertorio.splice(index, 1);
-    fs.writeFileSync("repertorio.json", JSON.stringify(repertorio, null, 2));
-    res.send("Canción eliminada con éxito");
-  } else {
-    res.status(404).send("Canción no encontrada");
-  }
+  repertorio.splice(index, 1);
+  fs.writeFileSync("repertorio.json", JSON.stringify(repertorio));
+  res.send("Cancion eliminada con exito");
 });
 
-// Editar una canción existente
+// Modificamos la informacion
 app.put("/repertorio/:id", (req, res) => {
   const { id } = req.params;
-  const nuevaCancion = req.body;
+  const cancion = req.body;
   const repertorio = JSON.parse(fs.readFileSync("repertorio.json"));
   const index = repertorio.findIndex((c) => c.id == id);
-
-  if (index !== -1) {
-    repertorio[index] = nuevaCancion;
-    fs.writeFileSync("repertorio.json", JSON.stringify(repertorio, null, 2));
-    res.send("Canción modificada con éxito");
-  } else {
-    res.status(404).send("Canción no encontrada");
-  }
-});
-
-// Inicia el servidor
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  repertorio[index] = cancion;
+  fs.writeFileSync("repertorio.json", JSON.stringify(repertorio));
+  res.send("Cancion modificada con exito");
 });
